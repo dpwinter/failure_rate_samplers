@@ -68,7 +68,6 @@ class SubsetSampler(Sampler):
         fail_cnts = np.zeros((len(w_vecs)))
         for i in range(n_samples):
             idx = SS_sel_fn(cnts, fail_cnts)
-            choice_hist.append(idx) # debug
             w_vec = w_vecs[idx]
             msmt = self._sample(self.err_gen, w_vec)
             fail_cnts[idx] += self._check_logical_failure(msmt)

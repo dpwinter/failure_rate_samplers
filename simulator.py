@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 class ChpSimulator:
-    """ Implementation of Scott/Gottesman CHP simulator.
+    """ Implementation of Aaronson/Gottesman CHP simulator.
     Updates stabilizer generators acted upon by gates of
     the Clifford group: CNOT, Hadamard and Phase (S).
     Ref: https://arxiv.org/pdf/quant-ph/0406196.pdf.

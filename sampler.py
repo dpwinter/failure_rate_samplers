@@ -58,7 +58,8 @@ class SubsetSampler(Sampler):
         choose_fn = lambda l,k: [l[i] for i in np.random.choice(len(l),k,replace=False)]
         self.err_gen = DepolarGen(choose_fn=choose_fn, n_ticks=len(circuit))
             
-    def run(self, p_max, delta_max, n_samples=20, SS_sel_fn=calc.balanced_SS_selector):
+    # def run(self, p_max, delta_max, n_samples=20, SS_sel_fn=calc.balanced_SS_selector):
+    def run(self, p_max, delta_max, n_samples=20, SS_sel_fn=calc.Metropolis_SS_selector):
         
         # Find w_max vector for delta_max at p_max
         assert len(p_max) == len(delta_max) == len(self.partitions)
@@ -73,13 +74,16 @@ class SubsetSampler(Sampler):
         # Generate 1D list of subset failure rates per weight vector combi
         cnts      = np.zeros((len(w_vecs))) + 1 # one virtual sample to avoid div0
         fail_cnts = np.zeros((len(w_vecs)))
+        idx = 0 # Needed for Metropolis SS selector (if chosen)
+
         for i in range(n_samples):
-            idx = SS_sel_fn(cnts, fail_cnts)
+            idx = SS_sel_fn(cnts, fail_cnts, curr_idx=idx)
             w_vec = w_vecs[idx]
             msmt = self._sample(self.err_gen, w_vec)
             fail_cnts[idx] += self._check_logical_failure(msmt)
             cnts[idx] += 1
-        pws = (fail_cnts / cnts)[:,None]
+        pws = (fail_cnts/ cnts)[:,None]
+        print(pws, fail_cnts, cnts)
         ###
 
         ### Analytical part ###

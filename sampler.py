@@ -1,23 +1,30 @@
 import itertools as it
-from simulator import StabSim
 import numpy as np
+
+from simulator import StabSim
 from error_gen import DepolarGen
-import circuit_utils
 import calc
+
+ONE_QUBIT_GATES = {'H','X','Z'} # (incomplete) list of elements in p1 partition
+TWO_QUBIT_GATES = {'CNOT'} # (incomplete) list of elements in p2 partition
+
+gategroups = {'p':  ONE_QUBIT_GATES | TWO_QUBIT_GATES,
+              'p1': ONE_QUBIT_GATES,
+              'p2': TWO_QUBIT_GATES }
 
 class Sampler():
     '''Generic Sampler base class'''
     
     def __init__(self, circuit, err_params):
         self.circuit = circuit
-        self.n_qubits = circuit_utils.n_qubits(circuit)
-        self.partitions = circuit_utils.partition_circuit(circuit, err_params.keys())
+        self.n_qubits = circuit.n_qubits
+        self.partitions = [circuit.partition(gategroups[g]) for g in err_params.keys()]
         self.p_phys_mat = np.vstack(list(err_params.values())).T # p_phy_range x partitions
 
     def _sample(self, err_gen=None, p_phys=None):
         sim = StabSim(self.n_qubits)
         err_circuit = None if err_gen==None else err_gen.generate(self.partitions, p_phys)
-        msmt = circuit_utils.run_circuit(sim, self.circuit, err_circuit)
+        msmt = sim.run(self.circuit, err_circuit)
         return msmt
 
     def _check_logical_failure(self, msmt):

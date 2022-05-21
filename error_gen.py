@@ -1,5 +1,6 @@
 import numpy as np
 import itertools as it
+from circuit import Circuit
 
 class DepolarGen():
     '''Depolar error generation for circuit level noise.'''
@@ -13,7 +14,7 @@ class DepolarGen():
     
     def generate(self, partitions, values):
 
-        err_circ = [None] * self.n_ticks
+        err_circ = Circuit([None] * self.n_ticks)
         for errs in [self.choose_fn(p,v) for p, v in zip(partitions, values)]: # generate errors
             for (tick, qbs) in errs:
                 if type(qbs) == int:

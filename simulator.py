@@ -155,43 +155,28 @@ class StabSim(ChpSimulator):
         self.phase(i)
         self.h(i)
 
-    def cz(self, c, t):
-        self.h(t)
-        self.cx(c, t)
-        self.h(t)
+    def _apply_gate(self, sym, qbs):
+        gate = getattr(self, sym.lower())
+        args = (qbs,) if type(qbs)==int else qbs
+        return gate(*args)
 
-    def cy(self, c, t):
-        self.phase(t)
-        self.cx(c,t)
-        self.phase(t)
-        self.phase(t)
-        self.phase(t)
-
-    def cpauli(self, op, c, t):
-        if op == "x": self.cnot(c,t)
-        if op == "y": self.cy(c,t)
-        if op == "z": self.cz(c,t)
-        else: 
-            return None
-
-    def _apply(self, gate):
-        # Apply a gate operator (x,cnot,..) to a qubit at loc
-        sym, loc = gate
-        op = getattr(self, sym.lower())
-        return op( *([loc] if type(loc)==int else loc) )
-
-    def run(self, tick_circuit):
-        # Public interface. Returns measurement result if any.
-        # Tick_circuit can be either single gate or list of gates
-        if type(tick_circuit)==list:
-            out = []
-            for gate in tick_circuit:
-                res = self._apply(gate)
-                if res: 
-                    out.append(res)
-            return out
-        elif type(tick_circuit)==tuple:
-            return self._apply(tick_circuit)
-        else:
-            return None
-
+    def run(self, circuit, err_circuit=None):
+        msmts = []
+        for tick_idx, tick in enumerate(circuit):
+            if type(tick) == list:
+                for sub_tick in tick:
+                    res = self._apply_gate(*sub_tick)
+                    if res: msmts.append((tick_idx,res))
+            elif type(tick) == tuple:
+                res = self._apply_gate(*tick)
+                if res: msmts.append((tick_idx,res))
+            
+            if err_circuit:
+                err_tick = err_circuit[tick_idx]
+                if err_tick:
+                    if type(err_tick) == list:
+                        for sub_err_tick in err_tick:
+                            self._apply_gate(*sub_err_tick)
+                    elif type(err_tick) == tuple:
+                        self._apply_gate(*err_tick)
+        return msmts

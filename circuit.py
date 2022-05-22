@@ -24,6 +24,15 @@ class Circuit(MutableSequence):
     def __len__(self):
         return len(self._ticks)
 
+    def __str__(self):
+        str_list = []
+        for i, tick in enumerate(self._ticks):
+            str_list.append("%i: " % i + str(tick))
+        return "\n".join(str_list)
+
+    def __repr__(self):
+        return self.__str__()
+
     def _iter_qubits(self):
         for tick_idx,tick in enumerate(self._ticks):
             if type(tick) == list:
@@ -45,4 +54,3 @@ class Circuit(MutableSequence):
 
     def partition(self, gategroup):
         return [(tick_idx,qbs) for tick_idx,sym,qbs in self._iter_qubits() if sym in gategroup]
-

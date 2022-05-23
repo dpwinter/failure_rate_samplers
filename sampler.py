@@ -70,7 +70,8 @@ class SubsetSampler(Sampler):
             msmt = self._sample(self.err_gen, w_vec)
             fail_cnts[idx] += self._check_logical_failure(msmt)
             cnts[idx] += 1
-        return fail_cnts, cnts
+
+        return fail_cnts, cnts - 1 # remove virtual sample
 
     def _find_weights(self, p_max, delta_max):
         # Find w_max vector for delta_max at p_max
@@ -85,22 +86,22 @@ class SubsetSampler(Sampler):
     def _calc_binomial_weights(self, w_vecs):
         # Calculate 3D tensor of binom. coefs for each partition
         partition_lens = np.array([len(p) for p in self.partitions])
-        Aws = np.array([calc.binom.pmf(w_vec, partition_lens, self.p_phys_mat) for w_vec in w_vecs])
+        Aws = np.array([calc.binom(w_vec, partition_lens, self.p_phys_mat) for w_vec in w_vecs])
         Aws = np.product(Aws, axis=-1) # get list of Aw for each partition SS combination
         return Aws
 
-    def _calc_stats(self, Aws, pws, n_samples):
+    def _calc_stats(self, Aws, pws, n_samples, var):
         # Calculate failure rates and std
         p_L_low = np.sum(Aws * pws, axis=0)
         p_L_up = p_L_low + 1 - np.sum(Aws, axis=0)
-        std = calc.std_sum(Aws, pws, n_samples)
+        std = calc.std_sum(Aws, pws, n_samples, var)
         return p_L_up, p_L_low, std
             
-    def run(self, p_max, delta_max, n_samples=20, SS_sel_fn=calc.Metropolis_SS_selector):
+    def run(self, p_max, delta_max, n_samples=20, var=calc.Wilson_var, SS_sel_fn=calc.balanced_SS_selector):
 
         w_vecs = self._find_weights(p_max, delta_max)
         fail_cnts, cnts = self._monte_carlo(w_vecs, n_samples, SS_sel_fn)
 
         pws = (fail_cnts/ cnts)[:,None]
         Aws = self._calc_binomial_weights(w_vecs)
-        return self._calc_stats(Aws, pws, n_samples)
+        return self._calc_stats(Aws, pws, n_samples, var)

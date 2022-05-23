@@ -1,5 +1,12 @@
-from scipy.stats import binom, beta
+import scipy.stats as stats
+from scipy.special import factorial
 import numpy as np
+
+def comb(n,k):
+    return factorial(n) / (factorial(k) * factorial(n-k))
+
+def binom(k,n,p):
+    return comb(n,k) * p**k * (1-p)**(n-k)
 
 def Wilson_std(p, N, z=1.96):
     # Estimator of standard deviation of binomial distribution according to Wilson
@@ -79,8 +86,8 @@ def Metropolis_SS_selector(counts, fail_counts, curr_idx, a=5, b=5, *args, **kwa
     # Compute Bayes numerators
     # posterior_prop = binom.pmf(k_prop, n_prop, p_L) * beta.pdf(pw_prop, a, b)
     # posterior_curr = binom.pmf(k_curr, n_curr, p_L) * beta.pdf(pw_curr, a, b)
-    likelihood_prop = binom.pmf(k_prop, n_prop, p_L)
-    likelihood_curr = binom.pmf(k_curr, n_curr, p_L)
+    likelihood_prop = stats.binom.logpmf(k_prop, n_prop, p_L)
+    likelihood_curr = stats.binom.logpmf(k_curr, n_curr, p_L) # avoid pmf for large n,k
     p_accept_prop = min(likelihood_prop / likelihood_curr, 1.0)
 
     # Probabilistic acceptance rule
@@ -96,6 +103,7 @@ def weight_cutoff(p_max, delta_max, n_circ_elems):
     # Return weight cutoff at p_max for delta_max.
     delta = 1
     for w_max in range(n_circ_elems+1):
-        delta -= binom.pmf(w_max, n_circ_elems, p_max)
+        # delta -= binom.pmf(w_max, n_circ_elems, p_max)
+        delta -= binom(w_max, n_circ_elems, p_max)
         if delta < delta_max: break
     return w_max

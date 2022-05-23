@@ -126,14 +126,11 @@ class MeasureResult:
             return self.value == other.value and self.determined == other.determined
         return NotImplemented
 
-    def __str__(self):
-        return self.value
-
-    # def __str__(self):
-    #     return '{} ({})'.format(self.value, ['random', 'determined'][self.determined])
-
     def __repr__(self):
-        return 'MeasureResult(value={!r}, determined={!r})'.format(self.value, self.determined)
+        return self.__str__()
+
+    def __str__(self):
+        return '{} ({})'.format(int(self.value), ['random', 'determined'][self.determined])
 
 class StabSim(ChpSimulator):
     '''Wrapper class for ChpSim, implements useful gates.'''
@@ -166,10 +163,12 @@ class StabSim(ChpSimulator):
             if type(tick) == list:
                 for sub_tick in tick:
                     res = self._apply_gate(*sub_tick)
-                    if res: msmts.append((tick_idx,res))
+                    if res: 
+                        msmts.append((tick_idx,res))
             elif type(tick) == tuple:
                 res = self._apply_gate(*tick)
-                if res: msmts.append((tick_idx,res))
+                if res: 
+                    msmts.append((tick_idx,res))
             
             if err_circuit:
                 err_tick = err_circuit[tick_idx]

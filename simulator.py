@@ -147,10 +147,20 @@ class StabSim(ChpSimulator):
         self.z(i)
         self.h(i)
 
-    def y(self, i):
-        self.h(i)
+    # def y(self, i):
+    #     self.h(i)
+    #     self.phase(i)
+    #     self.h(i)
+
+    def phase_adjoint(self, i):
         self.phase(i)
-        self.h(i)
+        self.phase(i)
+        self.phase(i)
+
+    def y(self, i):
+        self.phase_adjoint(i)
+        self.x(i)
+        self.phase(i)
 
     def _apply_gate(self, sym, qbs):
         gate = getattr(self, sym.lower())

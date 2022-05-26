@@ -61,7 +61,7 @@ class SubsetSampler(Sampler):
     def _monte_carlo(self, w_vecs, n_samples, SS_sel_fn):
         # Generate 1D list of subset failure rates per weight vector combi
         cnts      = np.zeros((len(w_vecs))) + 1 # one virtual sample to avoid div0
-        fail_cnts = np.zeros((len(w_vecs)))
+        fail_cnts = np.zeros((len(w_vecs))) 
         idx = 0 # Needed for Metropolis SS selector (if chosen)
 
         for i in range(n_samples):
@@ -90,7 +90,7 @@ class SubsetSampler(Sampler):
         Aws = np.product(Aws, axis=-1) # get list of Aw for each partition SS combination
         return Aws
 
-    def _calc_stats(self, Aws, pws, n_samples, var):
+    def _calc_stats(self, Aws, pws, n_samples, var=calc.Wilson_var):
         # Calculate failure rates and std
         p_L_low = np.sum(Aws * pws, axis=0)
         p_L_up = p_L_low + 1 - np.sum(Aws, axis=0)

@@ -67,32 +67,29 @@ def Metropolis_SS_selector(counts, fail_counts, curr_idx, a=5, b=5, *args, **kwa
     # But: the binning of samples looks more promising than ERV
     # i.e. samples a lot more in relevant subsets than ERV
 
-    cnts = counts + 2
-    fcnts = fail_counts + 1
+    counts = counts + 2
+    fail_counts = fail_counts + 1
 
     # Return index of SS sampled from posterior over SS config space
 
     # Propose new index
     prop_idx = np.random.choice(len(counts))
 
-    k_curr, k_prop = fcnts[curr_idx], fcnts[prop_idx]
-    n_curr, n_prop = cnts[curr_idx], cnts[prop_idx]
+    k_curr, k_prop = fail_counts[curr_idx], fail_counts[prop_idx]
+    n_curr, n_prop = counts[curr_idx], counts[prop_idx]
 
     # Calculate SS failure rates
-    # pw_curr = k_curr / n_curr
-    # pw_prop = k_prop / n_prop
-    p_L = np.sum(fcnts) / np.sum(cnts)
+    pw_curr = k_curr / n_curr
+    pw_prop = k_prop / n_prop
+    p_L = np.sum(fail_counts) / np.sum(counts)
 
     # Compute Bayes numerators
-    # posterior_prop = binom.pmf(k_prop, n_prop, p_L) * beta.pdf(pw_prop, a, b)
-    # posterior_curr = binom.pmf(k_curr, n_curr, p_L) * beta.pdf(pw_curr, a, b)
-    likelihood_prop = stats.binom.logpmf(k_prop, n_prop, p_L)
-    likelihood_curr = stats.binom.logpmf(k_curr, n_curr, p_L) # avoid pmf for large n,k
-    p_accept_prop = min(likelihood_prop / likelihood_curr, 1.0)
+    posterior_prop = stats.binom.logpmf(k_prop, n_prop, p_L) * stats.beta.pdf(pw_prop, a, b)
+    posterior_curr = stats.binom.logpmf(k_curr, n_curr, p_L) * stats.beta.pdf(pw_curr, a, b)
+    p_accept_prop = min(posterior_prop / posterior_curr, 1.0)
 
     # Probabilistic acceptance rule
     # If ratio is > 1.0 always accept the proposed subset, else probabilistically
-    # p_accept_prop = min(posterior_prop / posterior_curr, 1.0)
 
     if p_accept_prop > np.random.uniform():
         return prop_idx
